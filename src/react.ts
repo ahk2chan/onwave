@@ -7,6 +7,7 @@ interface UseOnWaveResult {
   ref: React.RefObject<HTMLElement | null>
   state: DetectorState
   calibrate: () => void
+  setThreshold: (value: number) => void
 }
 
 export function useOnWave(
@@ -40,5 +41,9 @@ export function useOnWave(
     detectorRef.current?.calibrate()
   }, [])
 
-  return { ref, state, calibrate }
+  const setThreshold = useCallback((value: number) => {
+    detectorRef.current?.setThreshold(value)
+  }, [])
+
+  return { ref, state, calibrate, setThreshold }
 }

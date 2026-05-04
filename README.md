@@ -39,16 +39,6 @@ function BrewTimer() {
 }
 ```
 
-## Why not MediaPipe?
-
-| | onwave | MediaPipe Hands |
-|---|---|---|
-| Bundle size | < 1KB | ~10MB |
-| Dependencies | 0 | runtime + model |
-| Use case | trigger events | landmark recognition |
-
-onwave does one thing: detect a wave and fire a callback. If you need hand landmarks or complex gesture recognition, use MediaPipe.
-
 ## How it works
 
 A hand waving in front of the camera briefly blocks ambient light. onwave samples the average brightness (luma) of the camera feed every 100ms using a 10×10 canvas — no ML, just pixel math. When brightness drops sharply below the calibrated baseline, the wave callback fires.
@@ -74,6 +64,10 @@ Returns `{ start, stop, calibrate, state }`.
 ### `useOnWave(onWave, options?)`
 
 React hook. Starts detector on mount, stops on unmount. Returns `{ ref, state, calibrate }`.
+
+## Privacy
+
+onwave processes all camera data locally in the browser. No frames, pixels, or any derived data are ever sent to a server or third party. The camera stream is released immediately when `detector.stop()` is called.
 
 ## Browser support
 

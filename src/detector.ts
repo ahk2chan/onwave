@@ -16,6 +16,7 @@ export interface WaveDetector {
   start(): Promise<void>
   stop(): void
   calibrate(): Promise<void>
+  setThreshold(value: number): void
   readonly state: DetectorState
 }
 
@@ -34,7 +35,7 @@ function sleep(ms: number): Promise<void> {
 export function createWaveDetector(options: WaveDetectorOptions): WaveDetector {
   const {
     onWave,
-    threshold = 40,
+    threshold: initialThreshold = 40,
     cooldown = 1000,
     sampleInterval = 100,
     sampleSize = 10,
@@ -44,6 +45,7 @@ export function createWaveDetector(options: WaveDetectorOptions): WaveDetector {
     onStateChange,
   } = options
 
+  let threshold = initialThreshold
   let _state: DetectorState = 'idle'
   let stream: MediaStream | null = null
   let video: HTMLVideoElement | null = null
@@ -69,12 +71,15 @@ export function createWaveDetector(options: WaveDetectorOptions): WaveDetector {
   }
 
   async function calibrate(): Promise<void> {
+    if (_state === 'calibrating') return
     setState('calibrating')
     const samples: number[] = []
     for (let i = 0; i < calibrationFrames; i++) {
+      if (_state === 'stopped') return
       samples.push(sampleLuma())
       await sleep(sampleInterval)
     }
+    if (_state === 'stopped') return
     baseline = samples.reduce((a, b) => a + b, 0) / samples.length
     inWave = false
     lastTriggered = 0
@@ -122,7 +127,7 @@ export function createWaveDetector(options: WaveDetectorOptions): WaveDetector {
 
       intervalId = setInterval(onSample, sampleInterval)
     } catch (err) {
-      setState('stopped')
+      stop()
       onError?.(err instanceof Error ? err : new Error(String(err)))
     }
   }
@@ -147,6 +152,7 @@ export function createWaveDetector(options: WaveDetectorOptions): WaveDetector {
     start,
     stop,
     calibrate,
+    setThreshold(value: number) { threshold = Math.max(0, Math.min(255, value)) },
     get state() { return _state },
   }
 }
