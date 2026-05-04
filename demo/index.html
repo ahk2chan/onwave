@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>onwave demo</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #0f0f0f;
+      color: #fff;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+    }
+    #counter {
+      font-size: 8rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+    #status {
+      font-size: 1rem;
+      color: #888;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    #status.listening { color: #4ade80; }
+    #status.triggered { color: #facc15; }
+    #status.calibrating { color: #60a5fa; }
+    #debug {
+      font-size: 0.8rem;
+      color: #555;
+      font-variant-numeric: tabular-nums;
+    }
+    #start-btn {
+      padding: 0.75rem 2rem;
+      font-size: 1rem;
+      background: #fff;
+      color: #000;
+      border: none;
+      border-radius: 9999px;
+      cursor: pointer;
+    }
+    #start-btn:hover { background: #ddd; }
+  </style>
+</head>
+<body>
+  <div id="counter">0</div>
+  <div id="status">idle</div>
+  <div id="debug">luma: — / baseline: —</div>
+  <button id="start-btn">Start camera</button>
+
+  <script type="module">
+    import { createWaveDetector } from '../src/index.ts'
+
+    let count = 0
+    const counterEl = document.getElementById('counter')
+    const statusEl = document.getElementById('status')
+    const debugEl = document.getElementById('debug')
+    const startBtn = document.getElementById('start-btn')
+
+    const detector = createWaveDetector({
+      onWave: () => {
+        count++
+        counterEl.textContent = count
+      },
+      onStateChange: (state) => {
+        statusEl.textContent = state
+        statusEl.className = state
+      },
+      threshold: 40,
+      cooldown: 1000,
+    })
+
+    startBtn.addEventListener('click', async () => {
+      startBtn.style.display = 'none'
+      await detector.start()
+    })
+  </script>
+</body>
+</html>
