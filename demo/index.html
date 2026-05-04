@@ -17,12 +17,6 @@
       justify-content: center;
       gap: 2rem;
     }
-    #counter {
-      font-size: 8rem;
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-      line-height: 1;
-    }
     #status {
       font-size: 1rem;
       color: #888;
@@ -32,21 +26,26 @@
     #status.listening { color: #4ade80; }
     #status.triggered { color: #facc15; }
     #status.calibrating { color: #60a5fa; }
-    #debug {
-      font-size: 0.8rem;
-      color: #555;
+    #wave-btn {
+      padding: 2rem 3.5rem;
+      font-size: 2rem;
+      font-weight: 700;
       font-variant-numeric: tabular-nums;
+      background: #1a1a1a;
+      color: #fff;
+      border: 2px solid #333;
+      border-radius: 1.5rem;
+      cursor: default;
+      transition: background 80ms ease, border-color 80ms ease, transform 80ms ease, box-shadow 80ms ease;
+      user-select: none;
     }
-    #start-btn {
-      padding: 0.75rem 2rem;
-      font-size: 1rem;
-      background: #fff;
+    #wave-btn.pressed {
+      background: #4ade80;
+      border-color: #4ade80;
       color: #000;
-      border: none;
-      border-radius: 9999px;
-      cursor: pointer;
+      transform: scale(0.94);
+      box-shadow: 0 0 32px #4ade8066;
     }
-    #start-btn:hover { background: #ddd; }
     #controls {
       display: flex;
       flex-direction: column;
@@ -65,12 +64,21 @@
       width: 100%;
       accent-color: #4ade80;
     }
+    #start-btn {
+      padding: 0.75rem 2rem;
+      font-size: 1rem;
+      background: #fff;
+      color: #000;
+      border: none;
+      border-radius: 9999px;
+      cursor: pointer;
+    }
+    #start-btn:hover { background: #ddd; }
   </style>
 </head>
 <body>
-  <div id="counter">0</div>
   <div id="status">idle</div>
-  <div id="debug">luma: — / baseline: —</div>
+  <button id="wave-btn">Wave — 0</button>
   <div id="controls">
     <label>
       <span>Sensitivity (threshold)</span>
@@ -84,17 +92,25 @@
     import { createWaveDetector } from '../src/index.ts'
 
     let count = 0
-    const counterEl = document.getElementById('counter')
     const statusEl = document.getElementById('status')
-    const debugEl = document.getElementById('debug')
+    const waveBtnEl = document.getElementById('wave-btn')
     const startBtn = document.getElementById('start-btn')
     const slider = document.getElementById('threshold-slider')
     const thresholdValue = document.getElementById('threshold-value')
 
+    let pressTimeout = null
+
+    function flash() {
+      waveBtnEl.classList.add('pressed')
+      if (pressTimeout) clearTimeout(pressTimeout)
+      pressTimeout = setTimeout(() => waveBtnEl.classList.remove('pressed'), 300)
+    }
+
     const detector = createWaveDetector({
       onWave: () => {
         count++
-        counterEl.textContent = count
+        waveBtnEl.textContent = `Wave — ${count}`
+        flash()
       },
       onStateChange: (state) => {
         statusEl.textContent = state
